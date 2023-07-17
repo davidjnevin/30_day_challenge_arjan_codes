@@ -55,7 +55,8 @@ class ShoppingCart:
         found_item = self.find_item_by_name(item_name)
         if found_item:
             self.items.remove(found_item)
-        raise ItemNotFoundException(f"Item '{item_name}' not found.")
+        else:
+            raise ItemNotFoundException(f"Item '{item_name}' not found.")
 
     def find_item_by_name(self, item_name: str) -> Item | None:
         for item in self.items:

@@ -1,0 +1,3 @@
+{
+    "template": "http://api.openweathermap.org/data/2.5/weather?q={city}&appid=b7eca2b9de5dddc6518dc670b6580486"
+}

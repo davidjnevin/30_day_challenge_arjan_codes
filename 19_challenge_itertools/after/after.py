@@ -1,3 +1,5 @@
+import itertools
+import operator
 from dataclasses import dataclass
 from faker import Faker
 import random
@@ -36,16 +38,27 @@ PERSON_DATA: list[Person] = [
 
 
 def main() -> None:
-    filtered_data: list[Person] = []
-    for person in PERSON_DATA:
-        if person.age >= 21:
-            filtered_data.append(person)
+    # filtered_data: list[Person] = []
+    # for person in PERSON_DATA:
+    #     if person.age >= 21:
+    #         filtered_data.append(person)
+    filtered_data = list(
+        itertools.filterfalse(lambda person: person.age < 21, PERSON_DATA)
+    )
 
-    summary: dict[str, int] = {}
-    for person in filtered_data:
-        if person.country not in summary:
-            summary[person.country] = 0
-        summary[person.country] += 1
+    # Sort data
+    filtered_data.sort(key=operator.attrgetter("country"))
+
+    # Group data by country
+    grouped_data = itertools.groupby(filtered_data, key=lambda person: person.country)
+
+    # Create a summary dict from the grouped data
+    summary = {country: len(list(group)) for country, group in grouped_data}
+    # summary: dict[str, int] = {}
+    # for person in filtered_data:
+    #     if person.country not in summary:
+    #         summary[person.country] = 0
+    #     summary[person.country] += 1
 
     print(summary)
 

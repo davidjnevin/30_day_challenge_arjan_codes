@@ -3,8 +3,14 @@ from typing import Any, Callable
 
 import requests
 from pydantic import BaseModel
+import os
+from dotenv import load_dotenv
+from numpy import full
 
-CONFIG_FILE = "config.json"
+# Load all envronment variables
+load_dotenv()
+
+API_KEY: str = os.getenv("API_KEY", "UnKnown")
 
 
 # Pydantic dataclasses don't support parsing from JSON strings yet.

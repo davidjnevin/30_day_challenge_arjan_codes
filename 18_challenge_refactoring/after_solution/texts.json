@@ -1,0 +1,13 @@
+{
+    "help_city": "Name of the city to get the weather information for",
+    "help_condition": "Weather conditions to display. Choose between 'all' or 'a', 'temperature' or 't', 'humidity' or 'h', 'wind' or 'w'.",
+    "help_api_key": "API key for the OpenWeatherMap API",
+    "cli_description": "Get the current weather information for a city",
+    "info_temperature": "The current temperature in {city} is {temperature:.1f} °C.",
+    "info_humidity": "The current humidity in {city} is {humidity:.1f} %.",
+    "info_wind": "The current wind speed in {city} is {wind_speed:.1f} m/s from direction {wind_direction} degrees.",
+    "conditions_temperature": ["temperature", "t"],
+    "conditions_humidity": ["humidity", "h"],
+    "conditions_wind": ["wind", "w"],
+    "conditions_all": ["all", "a"]
+}

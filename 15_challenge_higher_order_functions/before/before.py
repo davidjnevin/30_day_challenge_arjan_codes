@@ -2,7 +2,13 @@ from typing import Any, Protocol
 
 import requests
 
-API_KEY = "123456789"
+import os
+from dotenv import load_dotenv
+
+# Load all envronment variables
+load_dotenv()
+
+API_KEY: str = os.getenv("API_KEY", "UnKnown")
 
 
 class CityNotFoundError(Exception):

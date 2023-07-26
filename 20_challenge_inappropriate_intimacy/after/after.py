@@ -23,21 +23,21 @@ class Location:
     geolocation: list[Geolocation] = field(default_factory=list)
 
 
-def generate_breadcrumbs(location: Location) -> dict[str, str]:
+def generate_breadcrumbs(geolocation: Geolocation) -> dict[str, str]:
     breadcrumbs: dict[str, str] = {}
     main_url = "https://myapi.com"
-    if location.geolocation[0]:
-        if location.geolocation[0].postal_code:
+    if geolocation:
+        if geolocation.postal_code:
             breadcrumbs[
                 "postal_code_url"
-            ] = f"{main_url}/postal_code/{location.geolocation[0].postal_code}/"
-        if location.geolocation[0].city:
-            city_slug = location.geolocation[0].city.lower().replace(" ", "-")
+            ] = f"{main_url}/postal_code/{geolocation.postal_code}/"
+        if geolocation.city:
+            city_slug = geolocation.city.lower().replace(" ", "-")
             breadcrumbs["city_url"] = f"{main_url}/region/{city_slug}/"
-        if location.geolocation[0].province:
+        if geolocation.province:
             breadcrumbs[
                 "province_url"
-            ] = f"{main_url}/region/province/{location.geolocation[0].province.lower()}/"
+            ] = f"{main_url}/region/province/{geolocation.province.lower()}/"
     return breadcrumbs
 
 
@@ -60,7 +60,7 @@ def main() -> None:
             )
         ],
     )
-    breadcrumbs = generate_breadcrumbs(location)
+    breadcrumbs = generate_breadcrumbs(location.geolocation[0])
     print(breadcrumbs)
 
 

@@ -1,39 +1,64 @@
-from controller import TextEditorController
-from commands import Insert, Delete, PrintText
-from texteditor import TextEditor
+from dataclasses import dataclass, field
+
+
+@dataclass
+class TextEditor:
+    text: str = ""
+    undo_stack: list[str] = field(default_factory=list)
+    redo_stack: list[str] = field(default_factory=list)
+
+    def _perform_edit(self, text: str) -> None:
+        self.undo_stack.append(self.text)
+        self.text = text
+        self.redo_stack = []
+
+    def insert(self, text: str) -> None:
+        self._perform_edit(self.text + text)
+
+    def delete(self, num_chars: int) -> None:
+        self._perform_edit(self.text[:-num_chars])
+
+    def undo(self) -> None:
+        if self.undo_stack:
+            self.redo_stack.append(self.text)
+            self.text = self.undo_stack.pop()
+
+    def redo(self) -> None:
+        if self.redo_stack:
+            self.undo_stack.append(self.text)
+            self.text = self.redo_stack.pop()
+
+    def print_text(self) -> None:
+        print(self.text)
+
 
 def main() -> None:
     # Test the text editor
     editor = TextEditor()
 
-    # create a TextEditor controller
-    controller = TextEditorController()
-
     # Since there is no text, these commands should do nothing
-    controller.undo()
-    controller.redo()
+    editor.undo()
+    editor.redo()
 
-    controller.execute(Insert(editor, "Hello"))
-    controller.execute(Insert(editor, " World!"))
+    editor.insert("Hello")
+    editor.insert(" World!")
+    editor.print_text()  # Output: Hello World!
 
-    controller.execute(PrintText(editor))
+    editor.delete(6)
+    editor.print_text()  # Output: Hello
 
-    controller.execute(Delete(editor, 6))
-    controller.undo()
-    controller.execute(PrintText(editor))
+    editor.undo()
+    editor.print_text()  # Output: Hello World!
 
-    controller.redo()
-    # controller.execute(PrintText(editor))
+    editor.redo()
+    editor.print_text()  # Output: Hello
 
-    controller.execute(Insert(editor, "!!!"))
+    editor.insert("!!!")
+    editor.print_text()  # Output: Hello!!!
 
-    # controller.execute(PrintText(editor))
-
-    controller.undo()
-    controller.undo()
-    controller.execute(PrintText(editor))
-
-    print(TextEditor)
+    editor.undo()
+    editor.undo()
+    editor.print_text()  # Output: Hello World!
 
 
 if __name__ == "__main__":

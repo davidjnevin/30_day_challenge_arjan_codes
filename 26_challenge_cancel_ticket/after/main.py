@@ -65,14 +65,35 @@ async def book_ticket(ticket: TicketCreate, database: Session = Depends(get_db))
         raise HTTPException(status_code=400) from exc
 
 
-@app.get("/tickets/{ticket_id}")
-async def get_ticket(ticket_id: int, database: Session = Depends(get_db)):
+# Update ticket
+@app.put("/tickets/{ticket_id}")
+async def update_ticket(ticket_id: int, ticket: TicketUpdate, database: Session = Depends(get_db)):
     try:
-        return operations.get_ticket(ticket_id, database)
+        return operations.update_ticket(ticket_id, ticket, database)
+    except operations.NotFoundError:
+        raise HTTPException(status_code=404)
+    except operations.EventAlreadyStarted:
+        raise HTTPException(status_code=400)
+
+
+# Cancel ticket
+@app.delete("/tickets/{ticket_id}")
+async def delete_ticket(ticket_id: int, database: Session = Depends(get_db)):
+    try:
+        return operations.delete_ticket(ticket_id, database)
+    except operations.NotFoundError:
+        raise HTTPException(status_code=404)
+    except operations.EventAlreadyStarted:
+        raise HTTPException(status_code=400)
+
+
+# Get event by id
+@app.get("/tickets/{ticket_id}")
+async def get_event(event_id: int, database: Session = Depends(get_db)):
+    try:
+        return operations.get_event(event_id, database)
     except operations.NotFoundError as exc:
         raise HTTPException(status_code=404) from exc
-
-
 def main():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 

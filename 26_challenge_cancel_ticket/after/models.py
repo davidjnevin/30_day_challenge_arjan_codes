@@ -19,6 +19,9 @@ class Event(Base):
     end_date: Mapped[datetime] = mapped_column(DateTime)
     available_tickets: Mapped[int] = mapped_column(Integer, index=True)
 
+    def has_started(self) -> bool:
+        return self.start_date < datetime.now()
+
 
 # Define ticket model
 class Ticket(Base):

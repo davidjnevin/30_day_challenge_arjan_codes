@@ -12,6 +12,10 @@ class NotFoundError(Exception):
     pass
 
 
+class EventAlreadyStarted(Exception):
+    pass
+
+
 class EventCreate(Protocol):
     title: str
     location: str
@@ -30,6 +34,10 @@ class TicketCreate(Protocol):
 
     def dict(self) -> dict[str, Any]:
         ...
+
+
+class TicketUpdate(Protocol):
+    customer_name: str
 
 
 class Database(Protocol):
@@ -59,7 +67,10 @@ def create_event(event: EventCreate, database: Database) -> Event:
 
 def delete_event(event_id: int, database: Database) -> Event:
     event = get_event(event_id, database)
+    tickets = get_all_tickets_by_event(event_id, database)
     database.delete(event)
+    for ticket in tickets:
+        database.delete(ticket)
     database.commit()
     return event
 
@@ -96,4 +107,34 @@ def get_ticket(ticket_id: int, database: Database) -> Ticket:
     ticket = database.query(Ticket).filter(Ticket.id == ticket_id).first()
     if not ticket:
         raise NotFoundError(f"Ticket with id {ticket_id} not found.")
+    return ticket
+
+
+def get_all_tickets_by_event(event_id: int, database: Database) -> list[Ticket]:
+    tickets = database.query(Ticket).filter(Ticket.event_id == event_id).all()
+    return tickets
+
+
+def delete_ticket(ticket_id: int, database: Database) -> Ticket:
+    ticket = get_ticket(ticket_id, database)
+    event = get_event(ticket.event_id, database)
+    if event.has_started():
+        raise EventAlreadyStarted(f"Event with id {ticket.event_id} has already started.")
+    database.delete(ticket)
+    event.available_tickets += 1
+
+    database.commit()
+    return ticket
+
+
+def update_ticket(ticket_id: int, ticket_update: TicketUpdate, database: Database) -> Ticket:
+    ticket = get_ticket(ticket_id, database)
+    event = get_event(ticket.event_id, database)
+    if event.has_started():
+        raise EventAlreadyStarted(f"Event with id {ticket.event_id} has already started.")
+
+    if ticket_update.customer_name:
+        ticket.customer_name = ticket_update.customer_name
+    database.commit()
+
     return ticket

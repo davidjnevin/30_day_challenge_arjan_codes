@@ -1,8 +1,9 @@
 from fastapi import Depends, FastAPI, HTTPException
-from models import Base, Event, Ticket
+from models import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from db import EventCreate, TicketCreate
+import operations
 import uvicorn
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./events.db"
@@ -11,7 +12,6 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
-
 
 app = FastAPI()
 
@@ -26,66 +26,50 @@ def get_db():
 # Create event
 @app.post("/events")
 async def create_event(event: EventCreate, database: Session = Depends(get_db)):
-    db_event = Event(**event.dict())
-    database.add(db_event)
-    database.commit()
-    database.refresh(db_event)
-    return db_event
+    return operations.create_event(event, database)
 
 
 # Delete event
 @app.delete("/events/{event_id}")
 async def delete_event(event_id: int, database: Session = Depends(get_db)):
-    event = database.query(Event).filter(Event.id == event_id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-    database.delete(event)
-    database.commit()
-    return event
+    try:
+        return operations.delete_event(event_id, database)
+    except operations.NotFoundError as exc:
+        raise HTTPException(status_code=404) from exc
 
 
 # Get event by id
 @app.get("/events/{event_id}")
 async def get_event(event_id: int, database: Session = Depends(get_db)):
-    event = database.query(Event).filter(Event.id == event_id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-    return event
+    try:
+        return operations.get_event(event_id, database)
+    except operations.NotFoundError as exc:
+        raise HTTPException(status_code=404) from exc
 
 
 # Get all events
 @app.get("/events")
 async def get_all_events(database: Session = Depends(get_db)):
-    events = database.query(Event).all()
-    return events
+    return operations.get_all_events(database)
 
 
 # Book ticket
 @app.post("/tickets")
 async def book_ticket(ticket: TicketCreate, database: Session = Depends(get_db)):
-    event = database.query(Event).filter(Event.id == ticket.event_id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-    if event.available_tickets < 1:
-        raise HTTPException(status_code=400, detail="No available tickets")
-
-    db_ticket = Ticket(**ticket.dict())
-    database.add(db_ticket)
-    database.commit()
-    database.refresh(db_ticket)
-
-    event.available_tickets -= 1
-    database.commit()
-
-    return db_ticket
+    try:
+        return operations.book_ticket(ticket, database)
+    except operations.NotFoundError as exc:
+        raise HTTPException(status_code=404) from exc
+    except operations.NoAvailableTickets as exc:
+        raise HTTPException(status_code=400) from exc
 
 
 @app.get("/tickets/{ticket_id}")
 async def get_ticket(ticket_id: int, database: Session = Depends(get_db)):
-    ticket = database.query(Ticket).filter(Ticket.id == ticket_id).first()
-    if not ticket:
-        raise HTTPException(status_code=404, detail="Ticket not found")
-    return ticket
+    try:
+        return operations.get_ticket(ticket_id, database)
+    except operations.NotFoundError as exc:
+        raise HTTPException(status_code=404) from exc
 
 
 def main():
